@@ -19,9 +19,7 @@ hs_err_pid*
 
 # Local environment and secrets
 .env
-.env
-!.env
-!.env.*.example
+.env.*
 **/application-local.properties
 **/application-local.yml
 **/application-local.yaml
@@ -33,6 +31,7 @@ hs_err_pid*
 **/mongodb_data/
 
 # IDEs and editors
+.idea
 .idea/
 *.iml
 *.ipr
