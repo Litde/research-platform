@@ -2,6 +2,8 @@ import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { OAuthService } from 'angular-oauth2-oidc';
+import { authConfig } from './auth.config';
 
 
 interface Experiment {
@@ -24,14 +26,45 @@ export class App implements OnInit {
   experiments = signal<Experiment[]>([]);
   loading = signal(false);
   error = signal('');
+  isAuthenticated = signal(false);
+  username = signal('');
   name = '';
   description = '';
   showForm = false;
 
-  constructor(private readonly http: HttpClient) {}
+  constructor(
+    private readonly http: HttpClient,
+    private readonly oauthService: OAuthService,
+  ) {}
 
   ngOnInit(): void {
-    this.loadExperiments();
+    this.oauthService.configure(authConfig);
+    this.oauthService.setStorage(sessionStorage);
+    this.oauthService.loadDiscoveryDocumentAndTryLogin().then(() => {
+      this.isAuthenticated.set(this.oauthService.hasValidAccessToken());
+      if (this.isAuthenticated()) {
+        this.oauthService.setupAutomaticSilentRefresh();
+      }
+      const claims = this.oauthService.getIdentityClaims() as
+        | { preferred_username?: string }
+        | null;
+      this.username.set(claims?.preferred_username ?? '');
+
+      if (this.isAuthenticated()) {
+        this.loadExperiments();
+      }
+    }).catch((error: unknown) => {
+      console.error('Could not initialize Keycloak login:', error);
+      this.error.set('Could not connect to the login service. Is Keycloak running?');
+    });
+  }
+
+  login(): void {
+    this.oauthService.initCodeFlow();
+  }
+
+  logout(): void {
+    this.oauthService.logOut();
   }
 
   loadExperiments(): void {
