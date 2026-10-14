@@ -1,4 +1,73 @@
 services:
+  frontend:
+    build:
+      context: ./frontend
+    container_name: research-platform-frontend
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:4200:80"
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./backend
+    container_name: research-platform-backend
+    restart: unless-stopped
+    environment:
+      SPRING_MONGODB_URI: mongodb://mongodb:27017/research_platform
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USERNAME:-research}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-research-dev-password}
+      KEYCLOAK_ISSUER_URI: http://localhost:8180/realms/research-platform
+      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/research-platform/protocol/openid-connect/certs
+      SIMULATION_DEMO_DELAY_MS: ${SIMULATION_DEMO_DELAY_MS:-10000}
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      demo-seed:
+        condition: service_completed_successfully
+
+  demo-seed:
+    image: mongo:8
+    container_name: research-platform-demo-seed
+    restart: "no"
+    command: ["mongosh", "mongodb://mongodb:27017/research_platform", "--file", "/scripts/seed-demo-data.js"]
+    volumes:
+      - ./scripts:/scripts:ro
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+  demo-reset:
+    image: mongo:8
+    container_name: research-platform-demo-reset
+    profiles: ["maintenance"]
+    restart: "no"
+    command: ["mongosh", "mongodb://mongodb:27017/research_platform", "--file", "/scripts/reset-demo-data.js"]
+    volumes:
+      - ./scripts:/scripts:ro
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+  demo-extend:
+    image: mongo:8
+    container_name: research-platform-demo-extend
+    profiles: ["maintenance"]
+    restart: "no"
+    command: ["mongosh", "mongodb://mongodb:27017/research_platform", "--file", "/scripts/extend-demo-data.js"]
+    volumes:
+      - ./scripts:/scripts:ro
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
   keycloak:
     image: quay.io/keycloak/keycloak:26.7.4
     container_name: research-platform-keycloak
@@ -7,30 +76,46 @@ services:
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME:-admin}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?Set KEYCLOAK_ADMIN_PASSWORD in your local .env file}
+      KC_HOSTNAME: http://localhost:8180
     ports:
       - "127.0.0.1:8180:8080"
     volumes:
       - ./keycloak/realm-import:/opt/keycloak/data/import:ro
+      - keycloak_data:/opt/keycloak/data
 
   mongodb:
     image: mongo:8
     container_name: research-platform-mongodb
     restart: unless-stopped
     ports:
-      - "27017:27017"
+      - "127.0.0.1:27017:27017"
     volumes:
       - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
 
   rabbitmq:
     image: rabbitmq:4-management
     container_name: research-platform-rabbitmq
     restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:-research}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-research-dev-password}
     ports:
       - "127.0.0.1:5672:5672"
       - "127.0.0.1:15672:15672"
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
 
 volumes:
+  keycloak_data:
   mongodb_data:
   rabbitmq_data:
