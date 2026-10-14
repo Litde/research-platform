@@ -1,6 +1,7 @@
 package pl.research.backend.experiment;
 
 import org.springframework.web.bind.annotation.*;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 import java.util.Map;
@@ -11,9 +12,16 @@ import java.util.Map;
 public class ExperimentController {
 
     private final ExperimentService service;
+    private final SimulationService simulationService;
+
+    @Autowired
+    public ExperimentController(ExperimentService service, SimulationService simulationService) {
+        this.service = service;
+        this.simulationService = simulationService;
+    }
 
     public ExperimentController(ExperimentService service) {
-        this.service = service;
+        this(service, null);
     }
 
     @GetMapping
@@ -46,6 +54,18 @@ public class ExperimentController {
     @DeleteMapping("/{id}")
     public void delete(@PathVariable String id) {
         service.delete(id);
+    }
+
+    @PostMapping("/{id}/runs")
+    public ExperimentRun runSimulation(
+            @PathVariable String id,
+            @jakarta.validation.Valid @RequestBody SimulationRequest request) {
+        return simulationService.run(id, request);
+    }
+
+    @GetMapping("/{id}/runs")
+    public List<ExperimentRun> findRuns(@PathVariable String id) {
+        return simulationService.findRuns(id);
     }
 
 }

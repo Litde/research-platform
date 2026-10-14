@@ -21,5 +21,16 @@ services:
     volumes:
       - mongodb_data:/data/db
 
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: research-platform-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5672:5672"
+      - "127.0.0.1:15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
 volumes:
   mongodb_data:
+  rabbitmq_data:

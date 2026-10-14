@@ -37,16 +37,30 @@ export class AuthService {
   }
 
   login(): void {
+    this.startLoginFlow();
+  }
+
+  register(): void {
+    this.startLoginFlow('create');
+  }
+
+  private startLoginFlow(prompt?: string): void {
+    const startFlow = () =>
+      this.oauthService.initCodeFlow(
+        undefined,
+        prompt ? { prompt } : undefined,
+      );
+
     if (this.initializationError()) {
       this.initialize().then(() => {
         if (!this.initializationError()) {
-          this.oauthService.initCodeFlow();
+          startFlow();
         }
       });
       return;
     }
 
-    this.oauthService.initCodeFlow();
+    startFlow();
   }
 
   logout(): void {
