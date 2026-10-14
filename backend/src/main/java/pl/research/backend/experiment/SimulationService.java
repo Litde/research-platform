@@ -38,6 +38,12 @@ public class SimulationService {
                 .toList();
     }
 
+    public List<ExperimentRun> findVisibleRuns(String userId, boolean admin) {
+        return runs.findAllByOrderByCreatedAtDesc().stream()
+                .filter(run -> canViewRun(run, userId, admin))
+                .toList();
+    }
+
     private boolean canViewRun(ExperimentRun run, String userId, boolean admin) {
         try {
             return experiments.canView(experiments.findById(run.getExperimentId()), userId, admin);

@@ -26,4 +26,12 @@ public class ExperimentRunController {
                 .map(GrantedAuthority::getAuthority).anyMatch("ROLE_ADMIN"::equals);
         return simulations.findActiveRuns(userId, admin);
     }
+
+    @GetMapping("/history")
+    public List<ExperimentRun> findVisibleHistory(@AuthenticationPrincipal Jwt jwt, Authentication authentication) {
+        String userId = jwt == null ? null : jwt.getSubject();
+        boolean admin = authentication != null && authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority).anyMatch("ROLE_ADMIN"::equals);
+        return simulations.findVisibleRuns(userId, admin);
+    }
 }

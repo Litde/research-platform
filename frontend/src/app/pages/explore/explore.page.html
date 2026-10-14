@@ -1,0 +1,62 @@
+<div class="explore-shell">
+  <aside class="explore-sidebar">
+    <a class="brand" routerLink="/experiments"><span class="brand-mark">✳</span><span>research<span class="brand-soft">platform</span></span></a>
+    <span class="section-label">WORKSPACE</span>
+    <nav aria-label="Main navigation">
+      <a routerLink="/experiments">▦ <span>My experiments</span></a>
+      <a class="active" routerLink="/explore" aria-current="page">⌕ <span>Explore data</span></a>
+    </nav>
+    <div class="sidebar-note"><span>✳</span><p>Every good result<br>begins with a question.</p><small>KEEP EXPLORING</small></div>
+    <a class="sidebar-back" routerLink="/experiments">← Back to workspace</a>
+  </aside>
+
+  <main>
+    <header class="topbar"><span>Workspace <i>/</i> <strong>Explore data</strong></span><a routerLink="/experiments">Experiments workspace ↗</a></header>
+    <div class="content">
+      <section class="heading"><div><p class="eyebrow">DISCOVER PATTERNS</p><h1>Explore data<span>.</span></h1><p>Search experiments and review how simulation activity changes over time.</p></div></section>
+
+      @if (error()) { <div class="error" role="alert">{{ error() }}</div> }
+
+      <section class="stats-grid" aria-label="Simulation summary">
+        <article class="stat-card"><span>VISIBLE EXPERIMENTS</span><strong>{{ experiments().length }}</strong><small>available to your account</small></article>
+        <article class="stat-card"><span>COMPLETED SIMULATIONS</span><strong>{{ historyLoading() ? '…' : (completedCount() | number) }}</strong><small>across visible experiments</small></article>
+        <article class="stat-card"><span>AVERAGE COMPUTE TIME</span><strong>{{ historyLoading() ? '…' : (averageDuration() | number:'1.1-1') + ' s' }}</strong><small>completed simulations</small></article>
+      </section>
+
+      <section class="panel chart-panel">
+        <div class="panel-title"><div><span class="eyebrow">LAST SIX MONTHS</span><h2>Simulation activity</h2><p>Completed runs by month, with average compute time.</p></div><span class="chart-legend"><i></i> Completed runs</span></div>
+        @if (historyLoading()) { <div class="chart-loading">Loading simulation history…</div> } @else {
+          <div class="chart" role="img" aria-label="Monthly completed simulation counts for the last six months">
+            <div class="y-labels"><span>{{ monthlyStats().reduce((max, item) => max > item.completed ? max : item.completed, 0) }}</span><span>0</span></div>
+            <div class="chart-columns">
+              @for (month of monthlyStats(); track month.key) {
+                <div class="chart-column" [attr.aria-label]="month.label + ': ' + month.completed + ' completed runs, average ' + (month.averageSeconds | number:'1.1-1') + ' seconds'">
+                  <div class="bar-area"><span class="bar-value">{{ month.completed || '' }}</span><div class="bar" [style.height.%]="month.barHeight"></div></div>
+                  <span class="month-label">{{ month.label }}</span>
+                  <small>{{ month.completed ? (month.averageSeconds | number:'1.1-1') + 's avg' : '—' }}</small>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </section>
+
+      <section class="panel list-panel">
+        <div class="list-heading"><div><h2>Browse experiments</h2><p>Filter by visibility, search by name or description, then choose an order.</p></div><strong>{{ filteredExperiments().length }} results</strong></div>
+        <div class="filters">
+          <label class="search"><span aria-hidden="true">⌕</span><input type="search" placeholder="Search experiments…" aria-label="Search experiments" [ngModel]="search()" (ngModelChange)="search.set($event)"></label>
+          <label>Visibility<select aria-label="Filter by visibility" [ngModel]="visibility()" (ngModelChange)="visibility.set($event)"><option value="all">All visible to me</option><option value="public">Public</option><option value="private">Private</option></select></label>
+          <label>Sort by<select aria-label="Sort experiments" [ngModel]="sortBy()" (ngModelChange)="sortBy.set($event)"><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="name">Name A–Z</option></select></label>
+        </div>
+        @if (loading()) { <div class="list-empty">Loading experiments…</div> } @else if (filteredExperiments().length) {
+          <div class="experiment-list">
+            @for (experiment of filteredExperiments(); track experiment.id ?? experiment.name) {
+              <article class="experiment-row"><span class="experiment-icon">✳</span><div class="experiment-info"><strong>{{ experiment.name }}</strong><p>{{ experiment.description || 'No description added yet.' }}</p></div><span class="badge" [class.public]="experiment.publiclyVisible">{{ experiment.publiclyVisible ? 'Public' : 'Private' }}</span><time>{{ experiment.createdAt ? (experiment.createdAt | date:'MMM d, y') : '—' }}</time></article>
+            }
+          </div>
+        } @else { <div class="list-empty">{{ search() || visibility() !== 'all' ? 'No experiments match these filters.' : 'No visible experiments yet.' }}</div> }
+      </section>
+      <footer class="page-footer">RESEARCH PLATFORM <span>Make time for the questions that matter.</span></footer>
+    </div>
+  </main>
+</div>
