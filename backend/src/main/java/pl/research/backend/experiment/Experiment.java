@@ -4,6 +4,8 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.Map;
 
 @Document(collection = "experiments")
 public class Experiment {
@@ -13,6 +15,14 @@ public class Experiment {
 
     private String name;
     private String description;
+    private String type = "MONTE_CARLO_PI";
+    private String chartMetricKey = "estimate";
+    private List<MetricDefinition> metrics = List.of(
+            new MetricDefinition("estimate", "Pi estimate", "", "line"),
+            new MetricDefinition("durationMillis", "Compute time", "ms", "line"),
+            new MetricDefinition("samples", "Samples", "count", "line")
+    );
+    private Map<String, Object> configuration = Map.of();
     private String ownerId;
     // Keep pre-sharing experiments visible after upgrading existing MongoDB documents.
     private boolean publiclyVisible = true;
@@ -48,6 +58,14 @@ public class Experiment {
         return description;
     }
 
+    public String getType() { return type == null ? "MONTE_CARLO_PI" : type; }
+
+    public String getChartMetricKey() { return chartMetricKey == null ? "estimate" : chartMetricKey; }
+
+    public List<MetricDefinition> getMetrics() { return metrics == null ? List.of() : metrics; }
+
+    public Map<String, Object> getConfiguration() { return configuration == null ? Map.of() : configuration; }
+
     public String getOwnerId() { return ownerId; }
 
     public boolean isPubliclyVisible() { return publiclyVisible; }
@@ -69,6 +87,14 @@ public class Experiment {
     public void setDescription(String description) {
         this.description = description;
     }
+
+    public void setType(String type) { this.type = type; }
+
+    public void setChartMetricKey(String chartMetricKey) { this.chartMetricKey = chartMetricKey; }
+
+    public void setMetrics(List<MetricDefinition> metrics) { this.metrics = metrics; }
+
+    public void setConfiguration(Map<String, Object> configuration) { this.configuration = configuration; }
 
     public void setOwnerId(String ownerId) { this.ownerId = ownerId; }
 

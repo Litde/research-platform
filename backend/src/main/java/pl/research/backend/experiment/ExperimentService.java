@@ -5,6 +5,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ExperimentService {
@@ -38,6 +39,7 @@ public class ExperimentService {
                 request.publiclyVisible(),
                 request.publiclyEditable()
         );
+        applyDefinition(experiment, request);
 
         return repository.save(experiment);
     }
@@ -65,6 +67,7 @@ public class ExperimentService {
         experiment.setDescription(request.description());
         experiment.setPubliclyVisible(request.publiclyVisible());
         experiment.setPubliclyEditable(request.publiclyEditable());
+        applyDefinition(experiment, request);
 
         return repository.save(experiment);
     }
@@ -84,6 +87,7 @@ public class ExperimentService {
         if (admin || owner) {
             experiment.setPubliclyVisible(request.publiclyVisible());
             experiment.setPubliclyEditable(request.publiclyEditable());
+            applyDefinition(experiment, request);
         }
         return repository.save(experiment);
     }
@@ -109,6 +113,18 @@ public class ExperimentService {
     private void validateVisibility(ExperimentRequest request) {
         if (request.publiclyEditable() && !request.publiclyVisible()) {
             throw new IllegalArgumentException("An experiment must be public to allow public editing");
+        }
+    }
+
+    private void applyDefinition(Experiment experiment, ExperimentRequest request) {
+        if (request.type() != null && !request.type().isBlank()) experiment.setType(request.type());
+        if (request.metrics() != null) experiment.setMetrics(request.metrics());
+        if (request.configuration() != null) experiment.setConfiguration(request.configuration());
+        if (request.chartMetricKey() != null && !request.chartMetricKey().isBlank()) {
+            boolean knownMetric = experiment.getMetrics().stream()
+                    .anyMatch(metric -> metric.key().equals(request.chartMetricKey()));
+            if (!knownMetric) throw new IllegalArgumentException("The selected chart metric is not defined for this experiment");
+            experiment.setChartMetricKey(request.chartMetricKey());
         }
     }
 

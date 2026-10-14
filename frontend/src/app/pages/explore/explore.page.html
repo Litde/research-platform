@@ -24,21 +24,38 @@
       </section>
 
       <section class="panel chart-panel">
-        <div class="panel-title"><div><span class="eyebrow">LAST SIX MONTHS</span><h2>Simulation activity</h2><p>Completed runs by month, with average compute time.</p></div><span class="chart-legend"><i></i> Completed runs</span></div>
+        <div class="panel-title"><div><span class="eyebrow">WEEKLY VIEW</span><h2>Metric trend</h2><p>Daily average of the selected metric for completed runs.</p></div><div class="chart-controls"><label class="chart-legend">Metric<select aria-label="Metric displayed on chart" [ngModel]="selectedMetric()" (ngModelChange)="selectedMetric.set($event)">@for (metric of availableMetrics(); track metric.key) { <option [value]="metric.key">{{ metric.label }}{{ metric.unit ? ' (' + metric.unit + ')' : '' }}</option> }</select></label><div class="week-switcher"><button type="button" aria-label="Previous week" (click)="changeWeek(-1)">←</button><strong>{{ selectedWeekLabel() }}</strong><button type="button" aria-label="Next week" [disabled]="weekOffset() === 0" (click)="changeWeek(1)">→</button></div></div></div>
         @if (historyLoading()) { <div class="chart-loading">Loading simulation history…</div> } @else {
-          <div class="chart" role="img" aria-label="Monthly completed simulation counts for the last six months">
-            <div class="y-labels"><span>{{ monthlyStats().reduce((max, item) => max > item.completed ? max : item.completed, 0) }}</span><span>0</span></div>
-            <div class="chart-columns">
-              @for (month of monthlyStats(); track month.key) {
-                <div class="chart-column" [attr.aria-label]="month.label + ': ' + month.completed + ' completed runs, average ' + (month.averageSeconds | number:'1.1-1') + ' seconds'">
-                  <div class="bar-area"><span class="bar-value">{{ month.completed || '' }}</span><div class="bar" [style.height.%]="month.barHeight"></div></div>
-                  <span class="month-label">{{ month.label }}</span>
-                  <small>{{ month.completed ? (month.averageSeconds | number:'1.1-1') + 's avg' : '—' }}</small>
+          <div class="chart weekly-chart" role="img" aria-label="Daily averages for the selected metric during the selected week">
+            <div class="chart-columns weekly-columns">
+              @for (day of weeklyStats(); track day.key) {
+                <div class="chart-column" [attr.aria-label]="day.label + ': metric average ' + (day.metricAverage | number:'1.2-4') + ', based on ' + day.completed + ' runs'">
+                  <div class="bar-area"><span class="bar-value">{{ day.metricAverage ? (day.metricAverage | number:'1.2-4') : '' }}</span><div class="bar" [style.height.%]="day.barHeight"></div></div>
+                  <span class="month-label">{{ day.label }}</span>
+                  <small>{{ day.completed }} {{ day.completed === 1 ? 'run' : 'runs' }}</small>
                 </div>
               }
             </div>
           </div>
         }
+      </section>
+
+      <section class="panel chart-panel relationship-panel">
+        <div class="panel-title"><div><span class="eyebrow">RUN COMPARISON</span><h2>Estimate accuracy by sample count</h2><p>Each point is one completed Monte Carlo run. The dashed line marks the expected value of π.</p></div><span class="chart-legend"><i></i> Run estimate <b class="reference-key"></b> π reference</span></div>
+        @if (historyLoading()) { <div class="chart-loading">Loading simulation history…</div> } @else if (scatterPoints().length) {
+          <div class="scatter-wrap">
+            <div class="scatter-y-title">π estimate</div>
+            <svg class="scatter-chart" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label="Scatter plot of pi estimates by number of samples">
+              <line x1="8" y1="15" x2="95" y2="15" class="grid-line"/><line x1="8" y1="50" x2="95" y2="50" class="grid-line"/><line x1="8" y1="90" x2="95" y2="90" class="axis-line"/>
+              <line x1="8" [attr.y1]="scatterReferenceY()" x2="95" [attr.y2]="scatterReferenceY()" class="reference-line"/>
+              @for (point of scatterPoints(); track $index) {
+                <circle [attr.cx]="point.x" [attr.cy]="point.y" r="1.8" class="scatter-point"><title>{{ point.experimentName }} · {{ point.samples | number }} samples · π ≈ {{ point.estimate | number:'1.6-6' }}</title></circle>
+              }
+            </svg>
+            <div class="scatter-x-labels"><span>Fewer samples</span><span>More samples</span></div>
+            <div class="scatter-x-title">Number of samples (logarithmic scale)</div>
+          </div>
+        } @else { <div class="chart-loading">Completed Monte Carlo runs will appear here after simulations finish.</div> }
       </section>
 
       <section class="panel list-panel">

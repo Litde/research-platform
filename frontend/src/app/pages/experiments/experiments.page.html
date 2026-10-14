@@ -191,7 +191,7 @@
                               <article class="run-card">
                                 <span class="run-status" [class.status-queued]="run.status === 'QUEUED'" [class.status-running]="run.status === 'RUNNING'" [class.status-completed]="run.status === 'COMPLETED'" [class.status-failed]="run.status === 'FAILED'">{{ run.status }}</span>
                                 <span class="run-samples">{{ run.samples | number }} samples</span>
-                                @if (run.estimate !== null) { <span class="run-estimate">π ≈ <strong>{{ run.estimate | number:'1.6-6' }}</strong></span> }
+                                @if ((run.metricValues?.['estimate'] ?? run.estimate) !== null && (run.metricValues?.['estimate'] ?? run.estimate) !== undefined) { <span class="run-estimate">π ≈ <strong>{{ run.metricValues?.['estimate'] ?? run.estimate | number:'1.6-6' }}</strong></span> }
                                 @if (run.status === 'COMPLETED') { <span class="run-duration">{{ run.durationMillis }} ms</span> }
                                 @if (run.error) { <span class="run-failure">{{ run.error }}</span> }
                                 <time>{{ run.createdAt | date:'MMM d, y, HH:mm:ss' }}</time>
@@ -308,6 +308,13 @@
           placeholder="What would you like to find out?"
           [disabled]="saving()"
         ></textarea>
+
+        <label for="experiment-chart-metric">Metric shown in charts</label>
+        <select id="experiment-chart-metric" name="chartMetricKey" [(ngModel)]="chartMetricKey" [disabled]="saving()">
+          @for (metric of metricOptions; track metric.key) {
+            <option [value]="metric.key">{{ metric.label }}{{ metric.unit ? ' (' + metric.unit + ')' : '' }}</option>
+          }
+        </select>
 
         @if (canEditSettings(editingExperiment())) {
           <div class="sharing-settings">

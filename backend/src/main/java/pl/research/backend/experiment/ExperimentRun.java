@@ -4,6 +4,8 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @Document(collection = "experiment_runs")
 public class ExperimentRun {
@@ -16,6 +18,7 @@ public class ExperimentRun {
     private String status;
     private long samples;
     private Double estimate;
+    private Map<String, Double> metricValues = new LinkedHashMap<>();
     private long durationMillis;
     private Instant createdAt;
     private Instant startedAt;
@@ -42,6 +45,10 @@ public class ExperimentRun {
     public void complete(double estimate, long durationMillis) {
         this.status = "COMPLETED";
         this.estimate = estimate;
+        this.metricValues = new LinkedHashMap<>();
+        this.metricValues.put("estimate", estimate);
+        this.metricValues.put("durationMillis", (double) durationMillis);
+        this.metricValues.put("samples", (double) samples);
         this.durationMillis = durationMillis;
         this.finishedAt = Instant.now();
     }
@@ -59,6 +66,11 @@ public class ExperimentRun {
     public String getStatus() { return status; }
     public long getSamples() { return samples; }
     public Double getEstimate() { return estimate; }
+    public Map<String, Double> getMetricValues() {
+        if (metricValues == null) metricValues = new LinkedHashMap<>();
+        if (estimate != null) metricValues.putIfAbsent("estimate", estimate);
+        return metricValues;
+    }
     public long getDurationMillis() { return durationMillis; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getStartedAt() { return startedAt; }

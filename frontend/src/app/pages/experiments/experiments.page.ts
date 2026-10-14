@@ -13,6 +13,9 @@ interface Experiment {
   ownerId?: string;
   publiclyVisible: boolean;
   publiclyEditable: boolean;
+  type?: string;
+  metrics?: { key: string; label: string; unit: string; chartType: string }[];
+  chartMetricKey?: string;
 }
 
 interface ExperimentRun {
@@ -23,6 +26,7 @@ interface ExperimentRun {
   status: 'QUEUED' | 'RUNNING' | 'COMPLETED' | 'FAILED';
   samples: number;
   estimate: number | null;
+  metricValues?: Record<string, number>;
   durationMillis: number;
   createdAt: string;
   error?: string;
@@ -73,6 +77,12 @@ export class ExperimentsPage implements OnDestroy {
   description = '';
   publiclyVisible = false;
   publiclyEditable = false;
+  chartMetricKey = 'estimate';
+  readonly metricOptions = [
+    { key: 'estimate', label: 'Pi estimate', unit: '' },
+    { key: 'durationMillis', label: 'Compute time', unit: 'ms' },
+    { key: 'samples', label: 'Number of samples', unit: 'count' },
+  ];
 
   constructor() {
     this.loadExperiments();
@@ -111,6 +121,7 @@ export class ExperimentsPage implements OnDestroy {
       description: this.description.trim(),
       publiclyVisible: this.publiclyVisible,
       publiclyEditable: this.publiclyEditable && this.publiclyVisible,
+      chartMetricKey: this.chartMetricKey,
     };
     const editing = this.editingExperiment();
     const saveRequest = editing?.id
@@ -127,6 +138,7 @@ export class ExperimentsPage implements OnDestroy {
           this.description = '';
           this.publiclyVisible = false;
           this.publiclyEditable = false;
+          this.chartMetricKey = 'estimate';
           this.saving.set(false);
           this.showCreateForm.set(false);
           this.editingExperiment.set(null);
@@ -148,6 +160,7 @@ export class ExperimentsPage implements OnDestroy {
     this.description = '';
     this.publiclyVisible = false;
     this.publiclyEditable = false;
+    this.chartMetricKey = 'estimate';
     this.editingExperiment.set(null);
   }
 
@@ -157,6 +170,7 @@ export class ExperimentsPage implements OnDestroy {
     this.description = '';
     this.publiclyVisible = false;
     this.publiclyEditable = false;
+    this.chartMetricKey = 'estimate';
     this.showCreateForm.set(true);
   }
 
@@ -166,6 +180,7 @@ export class ExperimentsPage implements OnDestroy {
     this.description = experiment.description ?? '';
     this.publiclyVisible = experiment.publiclyVisible;
     this.publiclyEditable = experiment.publiclyEditable;
+    this.chartMetricKey = experiment.chartMetricKey ?? 'estimate';
     this.showCreateForm.set(true);
   }
 
