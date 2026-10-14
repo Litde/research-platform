@@ -1,0 +1,27 @@
+
+### Get all experiments
+GET http://localhost:8080/api/experiments
+
+### Create experiment
+POST http://localhost:8080/api/experiments
+Content-Type: application/json
+
+{
+  "name": "Test CRUD",
+  "description": "Testing all API operations"
+}
+
+### Get one experiment - replace ID
+GET http://localhost:8080/api/experiments/6ace9a17657b11922bae1bda
+
+### Update experiment - replace ID
+PUT http://localhost:8080/api/experiments/6ace9a17657b11922bae1bda
+Content-Type: application/json
+
+{
+  "name": "Updated experiment",
+  "description": "Updated description"
+}
+
+### Delete experiment - replace ID
+DELETE http://localhost:8080/api/experiments/6ace9a17657b11922bae1bda
