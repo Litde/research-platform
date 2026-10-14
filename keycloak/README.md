@@ -7,5 +7,7 @@
 5. If the realm already existed before registration was enabled, turn it on in Keycloak: switch to the `research-platform` realm, open **Realm settings** → **Login**, and enable **User registration**. Keycloak skips realms that already exist during startup import.
 6. In one terminal, start the backend from `backend` with `mvnw.cmd spring-boot:run`. In another, start the frontend from `frontend` with `npm ci` followed by `npm start`.
 7. Open `http://localhost:4200`, choose **Create an account**, and complete the registration form on Keycloak. After registration, Keycloak returns you to the experiments page.
+8. The realm configuration defines `user` and `admin` application roles and assigns `user` to new accounts. To promote an existing account, open the `research-platform` realm → **Users** → select the account → **Role mapping** → **Assign role**, then assign the realm role `admin`.
+9. Realm import only applies when the realm is first created. For an already-running realm, create the `user` and `admin` realm roles in **Realm roles** if they are missing, and assign `admin` manually as above.
 
 The admin account is only for managing Keycloak. Application users sign in through the `research-platform` realm. Do not use the development Keycloak settings for a public or production deployment.

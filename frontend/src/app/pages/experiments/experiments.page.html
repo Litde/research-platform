@@ -34,7 +34,7 @@
       <div class="avatar">{{ initials() }}</div>
       <div class="account-copy">
         <strong>{{ username() || 'Researcher' }}</strong>
-        <span>Research workspace</span>
+        <span>{{ isAdmin() ? 'Administrator' : 'Researcher' }}</span>
       </div>
       <button class="icon-button logout-icon" type="button" title="Log out" aria-label="Log out" (click)="logout()">
         <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -64,7 +64,7 @@
           <h1>Experiments<span class="heading-period">.</span></h1>
           <p class="page-subtitle">A thoughtful home for every idea you’re exploring.</p>
         </div>
-        <button class="primary-button" type="button" (click)="showCreateForm.set(true)">
+        <button class="primary-button" type="button" (click)="openCreateForm()">
           <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
             <path d="M10 4v12M4 10h12" />
           </svg>
@@ -145,15 +145,22 @@
                     <td>
                       <div class="experiment-name-cell">
                         <span class="experiment-symbol" aria-hidden="true">✳</span>
-                        <strong>{{ experiment.name }}</strong>
+                        <div class="experiment-title-stack">
+                          <strong>{{ experiment.name }}</strong>
+                          <span class="visibility-badge" [class.visibility-public]="experiment.publiclyVisible">{{ experiment.publiclyVisible ? 'Public' : 'Private' }}</span>
+                        </div>
                       </div>
                     </td>
                     <td class="description-cell">{{ experiment.description || 'No description added yet.' }}</td>
                     <td class="date-cell">{{ experiment.createdAt ? (experiment.createdAt | date: 'MMM d, y') : '—' }}</td>
                     <td class="row-action-cell">
-                      <button class="run-open-button" type="button" (click)="activeExperimentId() === experiment.id ? closeRuns() : openRuns(experiment)">
-                        {{ activeExperimentId() === experiment.id ? 'Close' : 'Simulate' }}
-                      </button>
+                      <div class="experiment-actions">
+                        @if (canEditExperiment(experiment)) { <button class="run-open-button" type="button" (click)="editExperiment(experiment)">Edit</button> }
+                        @if (isAdmin()) { <button class="delete-button" type="button" (click)="deleteExperiment(experiment)">Delete</button> }
+                        <button class="run-open-button" type="button" (click)="activeExperimentId() === experiment.id ? closeRuns() : openRuns(experiment)">
+                          {{ activeExperimentId() === experiment.id ? 'Close' : 'Simulate' }}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                   @if (activeExperimentId() === experiment.id) {
@@ -210,7 +217,7 @@
                         <h3>{{ searchTerm() ? 'No matches found' : 'Your next discovery starts here' }}</h3>
                         <p>{{ searchTerm() ? 'Try another search term.' : 'Create an experiment to capture a question you want to explore.' }}</p>
                         @if (!searchTerm()) {
-                          <button class="secondary-button" type="button" (click)="showCreateForm.set(true)">Create your first experiment</button>
+                          <button class="secondary-button" type="button" (click)="openCreateForm()">Create your first experiment</button>
                         }
                       </div>
                     }
@@ -268,10 +275,10 @@
       aria-labelledby="create-modal-title"
       (click)="$event.stopPropagation()"
     >
-      <div class="modal-topline"><span>NEW ENTRY</span><button class="icon-button modal-close" type="button" aria-label="Close dialog" (click)="closeCreateForm()">×</button></div>
+      <div class="modal-topline"><span>{{ editingExperiment() ? 'EDIT ENTRY' : 'NEW ENTRY' }}</span><button class="icon-button modal-close" type="button" aria-label="Close dialog" (click)="closeCreateForm()">×</button></div>
       <div class="modal-icon" aria-hidden="true">✳</div>
-      <h2 id="create-modal-title">Start an experiment</h2>
-      <p class="modal-description">Give your idea a name. You can fill in the details as your research takes shape.</p>
+      <h2 id="create-modal-title">{{ editingExperiment() ? 'Edit experiment' : 'Start an experiment' }}</h2>
+      <p class="modal-description">{{ editingExperiment() ? 'Update its details and sharing settings.' : 'Give your idea a name and choose how it can be shared.' }}</p>
 
       <form (ngSubmit)="createExperiment()">
         <label for="experiment-name">Experiment name <span>*</span></label>
@@ -296,10 +303,26 @@
           [disabled]="saving()"
         ></textarea>
 
+        @if (canEditSettings(editingExperiment())) {
+          <div class="sharing-settings">
+            <div class="sharing-heading"><strong>Sharing settings</strong><span>CONTROL WHO CAN ACCESS THIS EXPERIMENT</span></div>
+            <label class="setting-option">
+              <input name="publiclyVisible" type="checkbox" [ngModel]="publiclyVisible" (ngModelChange)="onPublicVisibilityChange($event)" [disabled]="saving()" />
+              <span class="setting-copy"><strong>Visible to all users</strong><small>Anyone signed in can view this experiment and its simulation history.</small></span>
+            </label>
+            <label class="setting-option" [class.setting-disabled]="!publiclyVisible">
+              <input name="publiclyEditable" type="checkbox" [(ngModel)]="publiclyEditable" [disabled]="saving() || !publiclyVisible" />
+              <span class="setting-copy"><strong>Editable by all users</strong><small>Other signed-in users can edit its name and description.</small></span>
+            </label>
+          </div>
+        } @else {
+          <div class="public-edit-note">You can edit this shared experiment. Only its owner or an admin can change its sharing settings.</div>
+        }
+
         <div class="modal-actions">
           <button class="secondary-button" type="button" (click)="closeCreateForm()" [disabled]="saving()">Cancel</button>
           <button class="primary-button" type="submit" [disabled]="!name.trim() || saving()">
-            @if (saving()) { Saving… } @else { Save experiment }
+            @if (saving()) { Saving… } @else if (editingExperiment()) { Save changes } @else { Save experiment }
           </button>
         </div>
       </form>

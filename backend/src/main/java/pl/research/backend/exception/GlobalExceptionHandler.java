@@ -35,6 +35,15 @@ public class GlobalExceptionHandler {
                 ));
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, Object>> handleBadRequest(IllegalArgumentException exception) {
+        return ResponseEntity.badRequest().body(Map.of(
+                "status", 400,
+                "error", "Bad Request",
+                "message", exception.getMessage()
+        ));
+    }
+
     @ExceptionHandler(ExperimentNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleNotFound(
             ExperimentNotFoundException exception) {

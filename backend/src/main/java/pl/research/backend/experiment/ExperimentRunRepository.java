@@ -7,4 +7,5 @@ import java.util.List;
 public interface ExperimentRunRepository extends MongoRepository<ExperimentRun, String> {
     List<ExperimentRun> findByExperimentIdOrderByCreatedAtDesc(String experimentId);
     List<ExperimentRun> findByStatusInOrderByCreatedAtAsc(List<String> statuses);
+    void deleteByExperimentId(String experimentId);
 }

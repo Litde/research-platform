@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { computed, Injectable, signal } from '@angular/core';
 import { OAuthService } from 'angular-oauth2-oidc';
 import { authConfig } from './auth.config';
 
@@ -6,6 +6,9 @@ import { authConfig } from './auth.config';
 export class AuthService {
   readonly isAuthenticated = signal(false);
   readonly username = signal('');
+  readonly userId = signal('');
+  readonly roles = signal<string[]>([]);
+  readonly isAdmin = computed(() => this.roles().includes('admin'));
   readonly initializationError = signal('');
 
   constructor(private readonly oauthService: OAuthService) {}
@@ -20,9 +23,15 @@ export class AuthService {
         this.isAuthenticated.set(this.oauthService.hasValidAccessToken());
 
         const claims = this.oauthService.getIdentityClaims() as
-          | { preferred_username?: string }
+          | {
+              preferred_username?: string;
+              sub?: string;
+              realm_access?: { roles?: string[] };
+            }
           | null;
         this.username.set(claims?.preferred_username ?? '');
+        this.userId.set(claims?.sub ?? '');
+        this.roles.set(claims?.realm_access?.roles ?? this.readAccessTokenRoles());
 
         if (this.isAuthenticated()) {
           this.oauthService.setupAutomaticSilentRefresh();
@@ -65,5 +74,24 @@ export class AuthService {
 
   logout(): void {
     this.oauthService.logOut();
+  }
+
+  private readAccessTokenRoles(): string[] {
+    const accessToken = this.oauthService.getAccessToken();
+    if (!accessToken) return [];
+
+    const encodedPayload = accessToken.split('.')[1];
+    if (!encodedPayload) return [];
+
+    try {
+      const base64 = encodedPayload.replace(/-/g, '+').replace(/_/g, '/');
+      const bytes = Uint8Array.from(atob(base64), (character) => character.charCodeAt(0));
+      const claims = JSON.parse(new TextDecoder().decode(bytes)) as {
+        realm_access?: { roles?: string[] };
+      };
+      return claims.realm_access?.roles ?? [];
+    } catch {
+      return [];
+    }
   }
 }

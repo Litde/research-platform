@@ -9,6 +9,12 @@ public record ExperimentRequest(
         String name,
 
         @Size(max = 2000, message = "Description cannot exceed 2000 characters")
-        String description
+        String description,
+
+        boolean publiclyVisible,
+        boolean publiclyEditable
 ) {
+    public ExperimentRequest(String name, String description) {
+        this(name, description, false, false);
+    }
 }

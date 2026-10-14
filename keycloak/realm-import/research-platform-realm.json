@@ -4,9 +4,26 @@
   "displayName": "Research Platform",
   "sslRequired": "none",
   "registrationAllowed": true,
+  "defaultRoles": ["user"],
   "loginWithEmailAllowed": true,
   "duplicateEmailsAllowed": false,
   "resetPasswordAllowed": true,
+  "roles": {
+    "realm": [
+      {
+        "name": "user",
+        "description": "Standard research platform user",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "name": "admin",
+        "description": "Research platform administrator",
+        "composite": false,
+        "clientRole": false
+      }
+    ]
+  },
   "clients": [
     {
       "clientId": "research-platform-frontend",
