@@ -1,5 +1,5 @@
 # Dependencies and generated frontend files
-frontend/node_modules/
+node_modules/
 frontend/.pnpm-store/
 .pnpm-store/
 frontend/dist/
