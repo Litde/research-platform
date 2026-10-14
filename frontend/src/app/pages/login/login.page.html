@@ -1,0 +1,86 @@
+<main class="login-layout">
+  <section class="login-story" aria-label="About Research Platform">
+    <a class="brand brand-light" routerLink="/login" aria-label="Research Platform home">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 36 36" fill="none">
+          <path d="M18 4.5 29.7 11v14L18 31.5 6.3 25V11L18 4.5Z" />
+          <path d="M11.5 21.8 17.9 14l6.6 7.8M14.4 18.3h7.1" />
+        </svg>
+      </span>
+      <span>research<span class="brand-name-soft">platform</span></span>
+    </a>
+
+    <div class="story-copy">
+      <div class="story-tag"><span></span> A workspace for curious minds</div>
+      <h1>Good research<br />starts with a<br /><em>clear question.</em></h1>
+      <p>
+        Keep your experiments organized, capture what you learn, and make your
+        next idea easier to explore.
+      </p>
+
+      <div class="story-points">
+        <div><span class="point-number">01</span><span>Bring your work together</span></div>
+        <div><span class="point-number">02</span><span>Keep the details in view</span></div>
+        <div><span class="point-number">03</span><span>Make room for what’s next</span></div>
+      </div>
+    </div>
+
+    <div class="story-footer">
+      <span>Thoughtful work, one experiment at a time.</span>
+      <span class="footer-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+    </div>
+    <div class="story-orbit orbit-one" aria-hidden="true"></div>
+    <div class="story-orbit orbit-two" aria-hidden="true"></div>
+  </section>
+
+  <section class="login-panel">
+    <div class="login-panel-top">
+      <span class="secure-label"><span class="secure-dot"></span> Secure sign-in</span>
+      <span class="login-help">Your research workspace</span>
+    </div>
+
+    <div class="login-card">
+      <div class="login-icon" aria-hidden="true">
+        <svg viewBox="0 0 48 48" fill="none">
+          <path d="M24 5.5 39 12v10.1c0 9.4-6.4 17.9-15 20.4-8.6-2.5-15-11-15-20.4V12l15-6.5Z" />
+          <path d="M18.5 23.8 22.2 27.5 30 19.5" />
+        </svg>
+      </div>
+      <p class="card-eyebrow">WELCOME BACK</p>
+      <h2>Sign in to your<br />research space</h2>
+      <p class="login-description">
+        Continue securely with your Research Platform account.
+      </p>
+
+      @if (auth.initializationError()) {
+        <div class="login-error" role="alert">
+          <span class="error-symbol" aria-hidden="true">!</span>
+          <span>{{ auth.initializationError() }}</span>
+        </div>
+      }
+
+      <button class="sign-in-button" type="button" (click)="auth.login()">
+        <span>Continue with Keycloak</span>
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path d="M4 10h11M10 5l5 5-5 5" />
+        </svg>
+      </button>
+
+      <div class="login-divider"><span></span><small>IDENTITY PROTECTED</small><span></span></div>
+      <p class="login-note">
+        You’ll be redirected to the secure sign-in page. Your password is never
+        shared with this application.
+      </p>
+
+      <div class="register-prompt">
+        <span>New to Research Platform?</span>
+        <button type="button" (click)="auth.register()">Create an account <span aria-hidden="true">→</span></button>
+      </div>
+    </div>
+
+    <div class="login-panel-footer">
+      <span>© 2026 Research Platform</span>
+      <span><span class="tiny-lock" aria-hidden="true">▣</span> Encrypted connection</span>
+    </div>
+  </section>
+</main>
