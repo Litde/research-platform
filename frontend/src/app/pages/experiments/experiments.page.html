@@ -1,0 +1,238 @@
+<div class="dashboard-shell">
+  <aside class="sidebar">
+    <a class="brand" routerLink="/experiments" aria-label="Research Platform">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 36 36" fill="none">
+          <path d="M18 4.5 29.7 11v14L18 31.5 6.3 25V11L18 4.5Z" />
+          <path d="M11.5 21.8 17.9 14l6.6 7.8M14.4 18.3h7.1" />
+        </svg>
+      </span>
+      <span>research<span class="brand-name-soft">platform</span></span>
+    </a>
+
+    <div class="sidebar-section-label">WORKSPACE</div>
+    <nav class="primary-nav" aria-label="Main navigation">
+      <a class="nav-link active" routerLink="/experiments" aria-current="page">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <rect x="3.25" y="3.25" width="5.5" height="5.5" rx="1.2" />
+          <rect x="11.25" y="3.25" width="5.5" height="5.5" rx="1.2" />
+          <rect x="3.25" y="11.25" width="5.5" height="5.5" rx="1.2" />
+          <rect x="11.25" y="11.25" width="5.5" height="5.5" rx="1.2" />
+        </svg>
+        <span>Experiments</span>
+        <span class="nav-count">{{ experiments().length }}</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-tip">
+      <span class="tip-mark" aria-hidden="true">✳</span>
+      <p>Every good result<br />begins with a question.</p>
+      <span class="tip-caption">KEEP EXPLORING</span>
+    </div>
+
+    <div class="sidebar-account">
+      <div class="avatar">{{ initials() }}</div>
+      <div class="account-copy">
+        <strong>{{ username() || 'Researcher' }}</strong>
+        <span>Research workspace</span>
+      </div>
+      <button class="icon-button logout-icon" type="button" title="Log out" aria-label="Log out" (click)="logout()">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path d="M8.2 3.5H4.8a1.3 1.3 0 0 0-1.3 1.3v10.4a1.3 1.3 0 0 0 1.3 1.3h3.4M12 6.2l3.8 3.8-3.8 3.8M15.5 10H7.8" />
+        </svg>
+      </button>
+    </div>
+  </aside>
+
+  <main class="workspace-main">
+    <header class="topbar">
+      <div class="breadcrumbs"><span>Workspace</span><span class="crumb-separator">/</span><strong>Experiments</strong></div>
+      <div class="topbar-right">
+        <span class="workspace-status"><i></i> Personal workspace</span>
+        <span class="topbar-avatar">{{ initials() }}</span>
+      </div>
+    </header>
+
+    <div class="content-area">
+      <section class="page-heading">
+        <div>
+          <p class="page-eyebrow">YOUR RESEARCH</p>
+          <h1>Experiments<span class="heading-period">.</span></h1>
+          <p class="page-subtitle">A thoughtful home for every idea you’re exploring.</p>
+        </div>
+        <button class="primary-button" type="button" (click)="showCreateForm.set(true)">
+          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <path d="M10 4v12M4 10h12" />
+          </svg>
+          <span>New experiment</span>
+        </button>
+      </section>
+
+      <section class="overview-cards" aria-label="Experiment overview">
+        <article class="overview-card">
+          <div class="overview-icon icon-green" aria-hidden="true">
+            <svg viewBox="0 0 22 22" fill="none"><path d="M4 5.5h14M4 11h14M4 16.5h9" /><circle cx="17" cy="16.5" r="2" /></svg>
+          </div>
+          <div class="overview-copy"><span>ALL EXPERIMENTS</span><strong>{{ experiments().length }}</strong></div>
+          <span class="overview-detail">in your workspace</span>
+        </article>
+        <article class="overview-card">
+          <div class="overview-icon icon-sand" aria-hidden="true">
+            <svg viewBox="0 0 22 22" fill="none"><path d="M11 3.5v2M11 16.5v2M3.5 11h2M16.5 11h2M5.7 5.7l1.4 1.4m7.8 7.8 1.4 1.4m0-10.6-1.4 1.4m-7.8 7.8-1.4 1.4" /><circle cx="11" cy="11" r="4" /></svg>
+          </div>
+          <div class="overview-copy"><span>IDEAS IN MOTION</span><strong>{{ experiments().length ? 'Ready' : 'Start here' }}</strong></div>
+          <span class="overview-detail">your next question awaits</span>
+        </article>
+        <article class="overview-card overview-note">
+          <div class="note-star" aria-hidden="true">✳</div>
+          <div class="overview-copy"><span>A SMALL REMINDER</span><strong>Stay curious.</strong></div>
+          <span class="overview-detail">progress is made one note at a time</span>
+        </article>
+      </section>
+
+      <section class="experiments-panel">
+        <div class="panel-heading">
+          <div>
+            <h2>Your experiments</h2>
+            <p>Review and organize the work you have in progress.</p>
+          </div>
+          <label class="search-box">
+            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="8.8" cy="8.8" r="5.6" /><path d="m13 13 3.7 3.7" /></svg>
+            <input
+              type="search"
+              aria-label="Search experiments"
+              placeholder="Find an experiment..."
+              [ngModel]="searchTerm()"
+              (ngModelChange)="searchTerm.set($event)"
+            />
+          </label>
+        </div>
+
+        @if (error()) {
+          <div class="error-banner" role="alert">
+            <span>{{ error() }}</span>
+            <button type="button" (click)="loadExperiments()">Try again</button>
+          </div>
+        }
+
+        <div class="table-scroll">
+          <table class="experiment-table">
+            <thead>
+              <tr>
+                <th scope="col">EXPERIMENT</th>
+                <th scope="col">DESCRIPTION</th>
+                <th scope="col">CREATED</th>
+                <th scope="col"><span class="visually-hidden">Open experiment</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              @if (loading()) {
+                @for (row of [1, 2, 3]; track row) {
+                  <tr class="loading-row">
+                    <td><span class="skeleton skeleton-title"></span></td>
+                    <td><span class="skeleton skeleton-description"></span></td>
+                    <td><span class="skeleton skeleton-date"></span></td>
+                    <td></td>
+                  </tr>
+                }
+              } @else {
+                @for (experiment of filteredExperiments(); track experiment.id ?? experiment.name) {
+                  <tr>
+                    <td>
+                      <div class="experiment-name-cell">
+                        <span class="experiment-symbol" aria-hidden="true">✳</span>
+                        <strong>{{ experiment.name }}</strong>
+                      </div>
+                    </td>
+                    <td class="description-cell">{{ experiment.description || 'No description added yet.' }}</td>
+                    <td class="date-cell">{{ experiment.createdAt ? (experiment.createdAt | date: 'MMM d, y') : '—' }}</td>
+                    <td class="row-action-cell"><span class="row-indicator" aria-hidden="true">↗</span></td>
+                  </tr>
+                } @empty {
+                  <tr class="empty-row"><td colspan="4">
+                    @if (error()) {
+                      <div class="empty-state">
+                        <div class="empty-art" aria-hidden="true"><span class="empty-spark">↻</span></div>
+                        <h3>We couldn’t reach your experiments</h3>
+                        <p>Check that the API is running, then try loading your workspace again.</p>
+                        <button class="secondary-button" type="button" (click)="loadExperiments()">Reload experiments</button>
+                      </div>
+                    } @else {
+                      <div class="empty-state">
+                        <div class="empty-art" aria-hidden="true">
+                          <span class="empty-orbit orbit-a"></span>
+                          <span class="empty-orbit orbit-b"></span>
+                          <span class="empty-spark">✳</span>
+                        </div>
+                        <h3>{{ searchTerm() ? 'No matches found' : 'Your next discovery starts here' }}</h3>
+                        <p>{{ searchTerm() ? 'Try another search term.' : 'Create an experiment to capture a question you want to explore.' }}</p>
+                        @if (!searchTerm()) {
+                          <button class="secondary-button" type="button" (click)="showCreateForm.set(true)">Create your first experiment</button>
+                        }
+                      </div>
+                    }
+                  </td></tr>
+                }
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <footer class="table-footer">
+          <span>Showing <strong>{{ filteredExperiments().length }}</strong> of {{ experiments().length }} experiments</span>
+          <span>Made for careful thinking <span class="footer-leaf">✳</span></span>
+        </footer>
+      </section>
+
+      <footer class="page-footer"><span>RESEARCH PLATFORM</span><span>Make time for the questions that matter.</span></footer>
+    </div>
+  </main>
+</div>
+
+@if (showCreateForm()) {
+  <div class="modal-backdrop" (click)="closeCreateForm()">
+    <section
+      class="create-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="create-modal-title"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="modal-topline"><span>NEW ENTRY</span><button class="icon-button modal-close" type="button" aria-label="Close dialog" (click)="closeCreateForm()">×</button></div>
+      <div class="modal-icon" aria-hidden="true">✳</div>
+      <h2 id="create-modal-title">Start an experiment</h2>
+      <p class="modal-description">Give your idea a name. You can fill in the details as your research takes shape.</p>
+
+      <form (ngSubmit)="createExperiment()">
+        <label for="experiment-name">Experiment name <span>*</span></label>
+        <input
+          id="experiment-name"
+          name="name"
+          [(ngModel)]="name"
+          required
+          maxlength="120"
+          placeholder="e.g. Exploring a new hypothesis"
+          [disabled]="saving()"
+        />
+
+        <label for="experiment-description">Description <span class="optional-label">OPTIONAL</span></label>
+        <textarea
+          id="experiment-description"
+          name="description"
+          [(ngModel)]="description"
+          rows="4"
+          maxlength="2000"
+          placeholder="What would you like to find out?"
+          [disabled]="saving()"
+        ></textarea>
+
+        <div class="modal-actions">
+          <button class="secondary-button" type="button" (click)="closeCreateForm()" [disabled]="saving()">Cancel</button>
+          <button class="primary-button" type="submit" [disabled]="!name.trim() || saving()">
+            @if (saving()) { Saving… } @else { Save experiment }
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
+}
