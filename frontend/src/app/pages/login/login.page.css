@@ -112,6 +112,11 @@
 .login-divider span { height: 1px; flex: 1; background: #e9ede8; }
 .login-divider small { color: #9aa39c; font-size: 9px; font-weight: 650; letter-spacing: 0.13em; }
 .login-note { margin: 0; color: #8b948e; font-size: 11px; line-height: 1.7; }
+.register-prompt { display: flex; align-items: center; justify-content: center; gap: 5px; margin-top: 28px; padding-top: 21px; border-top: 1px solid #edf0eb; color: #858f87; font-size: 11px; }
+.register-prompt button { padding: 5px 2px; border: 0; color: #385d45; background: transparent; cursor: pointer; font: inherit; font-weight: 650; }
+.register-prompt button:hover { color: #63835f; }
+.register-prompt button:focus-visible { outline: 2px solid #a9c39b; outline-offset: 2px; border-radius: 3px; }
+.register-prompt button span { padding-left: 3px; }
 .login-error { display: flex; align-items: flex-start; gap: 10px; margin: -8px 0 18px; padding: 12px 13px; border: 1px solid #f2d8d0; border-radius: 8px; color: #914b3d; background: #fff7f4; font-size: 12px; line-height: 1.5; }
 .error-symbol { display: grid; width: 17px; height: 17px; flex: 0 0 auto; place-items: center; border-radius: 50%; color: white; background: #b96853; font-size: 11px; font-weight: 700; }
 .tiny-lock { margin-right: 4px; color: #779176; }

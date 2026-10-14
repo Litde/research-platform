@@ -49,6 +49,10 @@
       <div class="breadcrumbs"><span>Workspace</span><span class="crumb-separator">/</span><strong>Experiments</strong></div>
       <div class="topbar-right">
         <span class="workspace-status"><i></i> Personal workspace</span>
+        <button class="queue-toggle" type="button" [attr.aria-expanded]="showQueuePanel()" (click)="showQueuePanel.update(value => !value)">
+          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3.5 5.5h13M5.5 10h9m-6.5 4.5h4"/><circle cx="16" cy="14.5" r="2.2"/></svg>
+          <span>Queue</span><strong>{{ activeRuns().length }}</strong>
+        </button>
         <span class="topbar-avatar">{{ initials() }}</span>
       </div>
     </header>
@@ -122,7 +126,7 @@
                 <th scope="col">EXPERIMENT</th>
                 <th scope="col">DESCRIPTION</th>
                 <th scope="col">CREATED</th>
-                <th scope="col"><span class="visually-hidden">Open experiment</span></th>
+                <th scope="col"><span class="visually-hidden">Experiment actions</span></th>
               </tr>
             </thead>
             <tbody>
@@ -146,8 +150,47 @@
                     </td>
                     <td class="description-cell">{{ experiment.description || 'No description added yet.' }}</td>
                     <td class="date-cell">{{ experiment.createdAt ? (experiment.createdAt | date: 'MMM d, y') : '—' }}</td>
-                    <td class="row-action-cell"><span class="row-indicator" aria-hidden="true">↗</span></td>
+                    <td class="row-action-cell">
+                      <button class="run-open-button" type="button" (click)="activeExperimentId() === experiment.id ? closeRuns() : openRuns(experiment)">
+                        {{ activeExperimentId() === experiment.id ? 'Close' : 'Simulate' }}
+                      </button>
+                    </td>
                   </tr>
+                  @if (activeExperimentId() === experiment.id) {
+                    <tr class="run-detail-row"><td colspan="4">
+                      <section class="run-workbench" aria-label="Simulation workbench">
+                        <div class="run-workbench-heading">
+                          <div><span class="run-eyebrow">COMPUTATION</span><h3>Estimate π with Monte Carlo</h3><p>The worker waits 10 seconds before calculating so you can observe the RUNNING state.</p></div>
+                          <button class="run-refresh" type="button" (click)="loadRuns(experiment.id!)">Refresh status</button>
+                        </div>
+                        <form class="run-controls" (ngSubmit)="startSimulation(experiment.id!)">
+                          <label for="sample-count">Number of samples</label>
+                          <input id="sample-count" name="samples" type="number" min="1000" max="500000000" step="1000000" required [ngModel]="runSamples()" (ngModelChange)="runSamples.set(+$event)" />
+                          <button class="primary-button run-submit" type="submit" [disabled]="queueingRun() || runSamples() < 1000 || runSamples() > 500000000">
+                            @if (queueingRun()) { Adding to queue… } @else { Queue simulation }
+                          </button>
+                        </form>
+                        @if (runError()) { <div class="run-error" role="alert">{{ runError() }}</div> }
+                        <div class="run-list-heading"><strong>Recent runs</strong><span>Updates automatically while a run is active</span></div>
+                        @if (runs().length) {
+                          <div class="run-list">
+                            @for (run of runs(); track run.id) {
+                              <article class="run-card">
+                                <span class="run-status" [class.status-queued]="run.status === 'QUEUED'" [class.status-running]="run.status === 'RUNNING'" [class.status-completed]="run.status === 'COMPLETED'" [class.status-failed]="run.status === 'FAILED'">{{ run.status }}</span>
+                                <span class="run-samples">{{ run.samples | number }} samples</span>
+                                @if (run.estimate !== null) { <span class="run-estimate">π ≈ <strong>{{ run.estimate | number:'1.6-6' }}</strong></span> }
+                                @if (run.status === 'COMPLETED') { <span class="run-duration">{{ run.durationMillis }} ms</span> }
+                                @if (run.error) { <span class="run-failure">{{ run.error }}</span> }
+                                <time>{{ run.createdAt | date:'MMM d, y, HH:mm:ss' }}</time>
+                              </article>
+                            }
+                          </div>
+                        } @else {
+                          <p class="run-empty">No runs yet. Choose a sample count and queue the first simulation.</p>
+                        }
+                      </section>
+                    </td></tr>
+                  }
                 } @empty {
                   <tr class="empty-row"><td colspan="4">
                     @if (error()) {
@@ -188,6 +231,33 @@
     </div>
   </main>
 </div>
+
+@if (showQueuePanel()) {
+  <button class="queue-scrim" type="button" aria-label="Close active jobs panel" (click)="showQueuePanel.set(false)"></button>
+  <aside class="queue-drawer" aria-label="Active experiment runs">
+    <div class="queue-drawer-header">
+      <div><span class="run-eyebrow">BACKGROUND WORK</span><h2>Active runs</h2><p>Tasks currently waiting or computing.</p></div>
+      <button class="icon-button modal-close" type="button" aria-label="Close panel" (click)="showQueuePanel.set(false)">×</button>
+    </div>
+    <div class="queue-drawer-summary"><span class="queue-live-dot"></span>{{ activeRuns().length }} {{ activeRuns().length === 1 ? 'task' : 'tasks' }} in progress</div>
+    @if (activeRuns().length) {
+      <div class="queue-drawer-list">
+        @for (run of activeRuns(); track run.id) {
+          <article class="queue-job-card">
+            <div class="queue-job-top"><span class="run-status" [class.status-queued]="run.status === 'QUEUED'" [class.status-running]="run.status === 'RUNNING'">{{ run.status }}</span><span class="queue-job-type">MONTE CARLO · π</span></div>
+            <h3>{{ run.experimentName }}</h3>
+            <p>{{ run.samples | number }} samples</p>
+            <div class="queue-progress-track"><span [class.progress-indeterminate]="run.status === 'RUNNING'"></span></div>
+            <div class="queue-job-footer"><time>{{ run.createdAt | date:'HH:mm:ss' }}</time><button type="button" (click)="openExperimentFromQueue(run)">View experiment <span aria-hidden="true">↗</span></button></div>
+          </article>
+        }
+      </div>
+    } @else {
+      <div class="queue-empty"><span aria-hidden="true">✳</span><h3>All caught up</h3><p>Queued and running simulations will appear here.</p></div>
+    }
+    <div class="queue-drawer-note"><span>LIVE QUEUE</span><p>This panel refreshes automatically while tasks are processing.</p></div>
+  </aside>
+}
 
 @if (showCreateForm()) {
   <div class="modal-backdrop" (click)="closeCreateForm()">
